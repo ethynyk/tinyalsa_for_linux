@@ -9,17 +9,21 @@ DEPS = $(SRCS:.c=.d)
 #CROSS_COMPILE =		aarch64-linux-gnu-
 CROSS_COMPILE =arm-linux-gnueabihf-
 CC =		$(CROSS_COMPILE)gcc
+AR =		$(CROSS_COMPILE)ar
+ARFLAGS = 
+ARFLAGS += rcs
 TARGET_PLAY = tinyplay
 TARGET_CAP = tinycap
 TARGET_MIXER = tinymix
-TARGET_LIB = libtinyalsa.so
+TARGET_LIB_SO = libtinyalsa.so
+TARGET_LIB_A = libtinyalsa.a
 TARGET_PATH := $(PWD)
 
 LIBS :=
 
 CFLAGS +=  $(INCS) -fPIC
 
-all : $(TARGET_PLAY)  $(TARGET_MIXER) $(TARGET_CAP) $(TARGET_LIB)
+all : $(TARGET_PLAY)  $(TARGET_MIXER) $(TARGET_CAP) $(TARGET_LIB_SO) $(TARGET_LIB_A)
 	
 $(SDIR)/%.o: $(SDIR)/%.c
 	$(CC) $(CFLAGS)  -o $@ -c $< 
@@ -34,10 +38,12 @@ $(TARGET_CAP) : $(CAP_OBJS)
 $(TARGET_MIXER) : $(MIXER_OBJS) 
 	$(CC) -o $(TARGET_PATH)/$@ $(MIXER_OBJS) $(LIBS)	
 	
-$(TARGET_LIB) : $(COMM_OBJS) 
+$(TARGET_LIB_SO) : $(COMM_OBJS) 
 	$(CC) -o $(TARGET_PATH)/$@ $(COMM_OBJS) $(LIBS) $(CFLAGS) --shared 
 
+$(TARGET_LIB_A): $(COMM_OBJS)
+	@$(AR) $(ARFLAGS) $@ $(COMM_OBJS)
 
 .PHONY : clean
 clean:
-	rm -f *.o  $(TARGET) $(TARGET_PLAY) $(TARGET_CAP) $(TARGET_MIXER) $(TARGET_LIB)
+	rm -f *.o  $(TARGET) $(TARGET_PLAY) $(TARGET_CAP) $(TARGET_MIXER) $(TARGET_LIB_SO) $(LIBAUDIO_A)
